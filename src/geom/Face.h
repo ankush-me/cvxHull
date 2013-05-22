@@ -6,10 +6,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <vector>
 #include <utility>
-
-
 #include "Data.h"
-#include "utils/sorting.h"
 #include "ConflictGraph.h"
 
 class HalfEdge;

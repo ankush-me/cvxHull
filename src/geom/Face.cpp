@@ -1,5 +1,6 @@
 #include "Face.h"
 #include "HalfEdge.h"
+#include "utils/sorting.h"
 
 using namespace std;
 using namespace boost;
