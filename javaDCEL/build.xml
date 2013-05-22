@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="comp163" default="compile">
+
+
+<!-- *********************************************************** -->
+<!--                         INIT                                -->
+<!-- *********************************************************** -->
+   <target name="init">
+      <tstamp>
+         <format property="build.date" pattern="MM-dd-yyyy"/>
+      </tstamp>
+      <property name="build.compiler" value="modern"/>
+   </target>
+
+
+<!-- *********************************************************** -->
+<!--                         CLEAN                               -->
+<!-- *********************************************************** -->
+   <target name="clean" depends="init">
+      <delete dir="classes"/>
+      <delete file="lib/classes.jar"/>
+   </target>
+
+
+<!-- *********************************************************** -->
+<!--                       COMPILE                               -->
+<!-- *********************************************************** -->
+   <target name="compile" depends="init">
+      <mkdir dir="classes"/>
+      <javac srcdir="java"
+             destdir="classes"
+             deprecation="true"
+             debug="true">
+      </javac>
+   </target>
+
+
+<!-- *********************************************************** -->
+<!--                       PACKAGE                               -->
+<!-- *********************************************************** -->
+   <target name="package" depends="compile">
+      <mkdir dir="lib"/>
+      <jar jarfile="lib/classes.jar" basedir="classes" update="false" excludes="**/*Test.class"/>
+      <zip destfile="src.zip" update="false">
+         <zipfileset dir="java" prefix="java"/>
+         <zipfileset dir="." includes="build.xml"/>
+      </zip>
+   </target>
+
+<!-- *********************************************************** -->
+<!--                        JAVADOC                              -->
+<!-- *********************************************************** -->
+   <target name="javadoc" depends="init, compile">
+      <delete dir="doc"/>
+      <mkdir dir="doc"/>
+      <javadoc packagenames="*"
+               sourcepath="java"
+               destdir="doc"
+               defaultexcludes="true"
+               author="true"
+               version="true"
+               use="true"/>
+   </target>
+
+</project>
+
