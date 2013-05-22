@@ -10,7 +10,7 @@
 class SubDivision {
 
 	std::vector<Vertex::Ptr> vertices;
-	std::vector<Face> faces;
+	std::vector<Face::Ptr> faces;
 
 	SubDivision() : vertices(), faces() {}
 
@@ -26,7 +26,7 @@ class SubDivision {
 	void removeFace(Face::Ptr f) {
 		int i=0;
 		while (i < faces.size()) {
-			if (faces[i] == f) break;
+			if (faces[i].get() == f.get()) break;
 			i += 1;
 		}
 		if (i< faces.size()) faces.erase(faces.begin()+i);

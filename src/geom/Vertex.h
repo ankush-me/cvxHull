@@ -10,9 +10,12 @@ class ConflictList;
 
 class Vertex {
 public:
+	bool visible;
 	typedef boost::shared_ptr<Vertex> Ptr;
 	Vector3dPtr pt;
 	boost::shared_ptr<ConflictList> cList;
+
+	Vertex() : visible(true) {}
 };
 
 

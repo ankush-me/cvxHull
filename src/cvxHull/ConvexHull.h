@@ -25,38 +25,41 @@ public:
 	/** List of facets visible to the current vertex */
 	std::vector<Face::Ptr> conflictFaces;
 
-	ConvexHull() {
-		restart();
-	}
+	bool initFromFile;
+	std::string outPrefix;
 
-	/** Clear existing vertices and facets and generate a new random point-cloud. */
-	void restart() {
-		clear();  // clear all vertices and facets
-		this.current = 0;
-		this.created.clear();
-		this.horizon.clear();
-		this.visible.clear();
 
-		Vertex v;
-		Random rand = new Random(System.currentTimeMillis());
-		float d = getDiameter();   // diameter
-		float r = d / 2.0F;        // radius
-		for (int i=0; i<40; i++) {
-			v = new Vertex((rand.nextFloat() * d) - r,
-					(rand.nextFloat() * d) - r,
-					(rand.nextFloat() * d) - r);
-			addVertex(v);
-			v.setData(new ConflictList(false));
+	/** Constructor. */
+	ConvexHull(std::string fname, std::string outname) : initFromFile(true) {
+		if (fname.substr(fname.length()-5,5)!= ".node") {
+			std::cout << "Expecting input file with .node extension. Instead, found "
+					<<fname.substr(fname.length()-5,5)<<". Exiting.\n";
+			exit(-1);
 		}
+
+		outPrefix  = (outname =="xdefaultx")? fname.substr(0, fname.length()-5) : outname;
+		readNodeFile(fname, this);
+
+		// randomly shuffle the points for randomized incremental insertion.
+		random_shuffle(vertices.begin(), vertices.end());
 	}
 
-	/**
-	 * Add the next vertex to the convex hull
-	 */
-	void step() {
+	/** Compute the convex hull of PTS. FILE_PREFIX :*/
+	ConvexHull::ConvexHull(vector3d &pts, std::string file_prefix) :
+					initFromFile(false), outPrefix(file_prefix) {
+		for(int i =0; i< pts.size(); i++) {
+			Vertex::Ptr v(new Vertex);
+			v->pt.reset(new Eigen::Vector3d(pts[i]));
+			v->cList.reset(new ConflictList(false));
+		}
+		random_shuffle(vertices.begin(), vertices.end());
+	}
+
+	/** Add the next vertex to the convex hull. */
+	void insertNext() {
 		if (current == 0) {
-			prep();
-		} else if (created.size() == 0) {
+			initTetraAndConflicts();
+		} else if (newFaces.size() == 0) {
 			stepA();
 			stepB();
 		} else {
@@ -64,58 +67,49 @@ public:
 		}
 	}
 
-	/**
-	 * To begin the convex hull algorithm, we create a tetrahedron from
-	 * the first four vertices in the point cloud.
-	 */
-	void prep() {
-		Vertex a = getVertex(0);
-		Vertex b = getVertex(1);
-		Vertex c = getVertex(2);
-		Vertex d = getVertex(3);
+	/** To begin the convex hull algorithm, we create a tetrahedron from
+	 *  the first four vertices in the point cloud. */
+	void initTetraAndConflicts() {
+		assert (("Convex Hull requires at least, 4 points.", vertices.size()>=4));
+		Vertex::Ptr v1 = vertices[0];
+		Vertex::Ptr v2 = vertices[1];
+		Vertex::Ptr v3 = vertices[2];
+		Vertex::Ptr v4 = vertices[3];
 
-		Facet f1 = new Facet(a, b, c, d);
-		Facet f2 = new Facet(a, c, d, b);
-		Facet f3 = new Facet(a, b, d, c);
-		Facet f4 = new Facet(b, c, d, a);
+		Face::Ptr f1(new Face(v1, v2, v3, v4));
+		Face::Ptr f2(new Face(v1, v3, v4, v2));
+		Face::Ptr f3(new Face(v1, v2, v4, v3));
+		Face::Ptr f4(new Face(v2, v3, v4, v1));
 
-		f1.setData(new ConflictList(true));
-		f2.setData(new ConflictList(true));
-		f3.setData(new ConflictList(true));
-		f4.setData(new ConflictList(true));
+		faces.clear();
+		faces.push_back(f1);
+		faces.push_back(f2);
+		faces.push_back(f3);
+		faces.push_back(f4);
 
-		addFacet(f1);
-		addFacet(f2);
-		addFacet(f3);
-		addFacet(f4);
+		for (int i=0; i<faces.size(); i++)
+			faces[i]->cList.reset(new ConflictList(true));
 
-		f1.connect(f2, a, c);
-		f1.connect(f3, a, b);
-		f1.connect(f4, b, c);
-		f2.connect(f3, a, d);
-		f2.connect(f4, c, d);
-		f3.connect(f4, b, d);
+		f1->connect(f2, v1, v3);
+		f1->connect(f3, v1, v2);
+		f1->connect(f4, v2, v3);
+		f2->connect(f3, v1, v4);
+		f2->connect(f4, v3, v4);
+		f3->connect(f4, v2, v4);
 
-		this.current = 4;
-
-		/*
-		 * Initialize the conflict graph
-		 */
-		Vertex v;
-		for (int i=4; i<getVertexCount(); i++) {
-			v = getVertex(i);
-			if (!f1.behind(v)) addConflict(f1, v);
-			if (!f2.behind(v)) addConflict(f2, v);
-			if (!f3.behind(v)) addConflict(f3, v);
-			if (!f4.behind(v)) addConflict(f4, v);
+		current = 4;
+		/** initialize conflicts.*/
+		for (int i=4; i < vertices.size(); i++) {
+			if (!f1->isBehind(vertices[i])) addConflict(f1, vertices[i]);
+			if (!f2->isBehind(vertices[i])) addConflict(f2, vertices[i]);
+			if (!f3->isBehind(vertices[i])) addConflict(f3, vertices[i]);
+			if (!f4->isBehind(vertices[i])) addConflict(f4, vertices[i]);
 		}
 
-		a.setVisible(false);
-		b.setVisible(false);
-		c.setVisible(false);
-		d.setVisible(false);
+		for (int i=0; i < 4; i++) {
+			vertices[i]->visible = false;
+		}
 	}
-
 
 	/** StepA begins an incremental step of the algorithm.
 	 * <ul>
@@ -126,43 +120,34 @@ public:
 	 * F(v) refers to the facets visible to vertex v.
 	 */
 	void stepA() {
-		if (this.current >= getVertexCount()) return;
+		if (current >= vertices.size()) return;
 
-		this.created.clear();
-		this.horizon.clear();
-		this.visible.clear();
+		newFaces.clear();
+		horizonEdges.clear();
+		conflictFaces.clear();
 
-		/*
-		 * Get list of visible facets for v.
-		 */
-		Vertex v = getVertex(current);
-		((ConflictList)v.getData()).getFacets(visible);
+		/*Get list of visible facets for v.*/
+		Vertex::Ptr v = vertices[current];
+		v->cList->getFaces(conflictFaces);
 
-		/*
-		 * If v is already inside the convex hull, try the next point
-		 */
-		if (visible.size() == 0) {
-			v.setVisible(false);
-			current++;
+		/*If v is already inside the convex hull, try the next point.*/
+		if (conflictFaces.size() == 0) {
+			v->visible = false;
+			current += 1;
 			stepA();
 			return;
 		}
 
-		/*
-		 * Flag visible facets
-		 */
-		for (int i=0; i<visible.size(); i++) {
-			((Facet)visible.get(i)).setMarked(true);
+		/* Flag visible facets. */
+		for (int i=0; i< conflictFaces.size(); i++) {
+			conflictFaces[i]->toDelete = true;
 		}
 
-		/*
-		 * Find horizon edges
-		 */
-		Edge e;
-		for (int i=0; i<visible.size(); i++) {
-			e = ((Facet)visible.get(i)).getHorizonEdge();
-			if (e != null) {
-				e.findHorizon(horizon);
+		/*Find horizon edges*/
+		for (int i=0; i< conflictFaces.size(); i++) {
+			HalfEdge::Ptr e = conflictFaces[i]->getHorizonEdge();
+			if (e) {
+				e->findHorizon(horizonEdges);
 				break;
 			}
 		}
@@ -254,7 +239,7 @@ public:
 	 * Add an arc to the conflict graph connecting the given facet and
 	 * vertex.
 	 */
-	void addConflict(Facet f, Vertex v) {
+	void addConflict(Face::Ptr f, Vertex::Ptr v) {
 		GraphArc arc = new GraphArc(f, v);
 		((ConflictList)f.getData()).add(arc);
 		((ConflictList)v.getData()).add(arc);
