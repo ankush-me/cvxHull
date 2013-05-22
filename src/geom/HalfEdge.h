@@ -5,6 +5,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include "Data.h"
 #include "Face.h"
+#include "Vertex.h"
 
 /**A class to represent an half-edge of a DCEL.*/
 class HalfEdge :  public boost::enable_shared_from_this<HalfEdge> {
@@ -13,8 +14,8 @@ public:
 	// define a pointer to edges.
 	typedef boost::shared_ptr<HalfEdge> Ptr;
 
-	Vector3dPtr org;
-	Vector3dPtr dst;
+	Vertex::Ptr org;
+	Vertex::Ptr dst;
 
 	Face::Ptr face;
 
@@ -23,16 +24,16 @@ public:
 	HalfEdge::Ptr twin;
 
 
-	HalfEdge(Vector3dPtr _org, Vector3dPtr _dst, Face::Ptr _face) : org(_org), dst(_dst), face(_face) {}
+	HalfEdge(Vertex::Ptr _org, Vertex::Ptr _dst, Face::Ptr _face) : org(_org), dst(_dst), face(_face) {}
 
 
 	bool onHorizon() {
 		return (!twin)? false : (!face->toDelete && twin->face->toDelete);
 	}
 
-	bool matches(Vector3dPtr p, Vector3dPtr  q) {
-		return ((*org == *p && *dst == *q)
-				|| (*org == *q && *dst == *p));
+	bool matches(Vertex::Ptr p, Vertex::Ptr  q) {
+		return ((*(org->pt) == *(p->pt) && *(dst->pt) == *(q->pt))
+				|| (*(org->pt) == *(q->pt) && *(dst->pt) == *(p->pt)));
 	}
 
 	void findHorizon(std::vector<HalfEdge::Ptr> &horizon) {

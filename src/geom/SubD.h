@@ -1,3 +1,6 @@
+#ifndef __SUBD_H__
+#define __SUBD_H__
+
 /** A collection of vertices, edges, and facets stored in an object-
  *  oriented version of a DCEL (doubly connected edge list).*/
 
@@ -6,15 +9,15 @@
 
 class SubDivision {
 
-	std::vector<Vector3dPtr> vertices;
+	std::vector<Vertex::Ptr> vertices;
 	std::vector<Face> faces;
 
 	SubDivision() : vertices(), faces() {}
 
-	void removeVertex(Vector3dPtr p) {
+	void removeVertex(Vertex::Ptr p) {
 		int i=0;
 		while (i < vertices.size()) {
-			if (*vertices[i] == *p) break;
+			if (*(vertices[i]->pt )== *(p->pt)) break;
 			i += 1;
 		}
 		if (i< vertices.size()) vertices.erase(vertices.begin()+i);
@@ -31,3 +34,5 @@ class SubDivision {
 	}
 
 };
+
+#endif

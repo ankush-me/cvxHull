@@ -6,8 +6,11 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <vector>
 #include <utility>
+
+
 #include "Data.h"
 #include "utils/sorting.h"
+#include "ConflictGraph.h"
 
 class HalfEdge;
 
@@ -16,19 +19,21 @@ class HalfEdge;
  *  this representation is specialized for triangular faces. */
 class Face : public boost::enable_shared_from_this<Face> {
 public:
-
 	typedef boost::shared_ptr<Face> Ptr;
 
-	std::vector<Vector3dPtr> vertices;
+	std::vector<Vertex::Ptr> vertices;
 	std::vector<boost::shared_ptr<HalfEdge> >  edges;
+
 	bool toDelete;
+	ConflictList::Ptr cList;
+
+
 
 	/** Initialize the edges of the face, given the three vertices. */
-	void initEdges(Vector3dPtr pa, Vector3dPtr pb, Vector3dPtr pc);
+	void initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);
 
-	typedef boost::shared_ptr<Face> Ptr;
 
-	Face (Vector3dPtr pa, Vector3dPtr pb, Vector3dPtr pc) : toDelete(false) {
+	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) : toDelete(false) {
 		vertices.push_back(pa);
 		vertices.push_back(pb);
 		vertices.push_back(pc);
@@ -37,7 +42,7 @@ public:
 	}
 
 	/** Constructs the face such that point T is behind the face.*/
-	Face (Vector3dPtr pa, Vector3dPtr pb, Vector3dPtr pc, Vector3dPtr t) : toDelete(false) {
+	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc, Vertex::Ptr t) : toDelete(false) {
 		vertices.push_back(pa);
 		vertices.push_back(pb);
 		vertices.push_back(pc);
@@ -49,12 +54,12 @@ public:
 	}
 
 	/** Returns TRUE iff, PT is behind this face.*/
-	bool isBehind(Vector3dPtr pt);
+	bool isBehind(Vertex::Ptr pt);
 
-	void connect(Face::Ptr adjacent, Vector3dPtr a, Vector3dPtr b);
+	void connect(Face::Ptr adjacent, Vertex::Ptr a, Vertex::Ptr b);
 	void connect(boost::shared_ptr<HalfEdge> e);
 
-	boost::shared_ptr<HalfEdge> getMatchingEdge(Vector3dPtr a, Vector3dPtr b);
+	boost::shared_ptr<HalfEdge> getMatchingEdge(Vertex::Ptr a, Vertex::Ptr b);
 	boost::shared_ptr<HalfEdge> getHorizonEdge();
 };
 

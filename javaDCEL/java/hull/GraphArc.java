@@ -76,12 +76,12 @@ public class GraphArc {
       ConflictList list;
 
       if (this.prevv == null) { 
-         list = (ConflictList)this.vertex.getData();
+         list = (ConflictList) this.vertex.getData();
          list.head = this.nextv;
       }
 
       if (this.prevf == null) {
-         list = (ConflictList)this.facet.getData();
+         list = (ConflictList) this.facet.getData();
          list.head = this.nextf;
       }
 //       if (this.vertex.getData() == this) {

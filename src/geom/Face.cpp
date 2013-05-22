@@ -5,7 +5,7 @@ using namespace std;
 using namespace boost;
 
 /** Initalizes the edges of the triangular face. */
-void Face::initEdges(Vector3dPtr pa, Vector3dPtr pb, Vector3dPtr pc) {
+void Face::initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) {
 
 	HalfEdge::Ptr e0(new HalfEdge(pa,pb, shared_from_this()));
 	HalfEdge::Ptr e1(new HalfEdge(pb,pc, shared_from_this()));
@@ -22,14 +22,17 @@ void Face::initEdges(Vector3dPtr pa, Vector3dPtr pb, Vector3dPtr pc) {
 	}
 }
 
-/** Checks if the point PT is behind this face.*/
-bool Face::isBehind(Vector3dPtr pt) {
-	return (orient3d(*vertices[0], *vertices[1], *vertices[2], *pt) > 0.0);
+/** Checks if the point P is behind this face.*/
+bool Face::isBehind(Vertex::Ptr p) {
+	return (  orient3d(*(vertices[0]->pt),
+				   	    *(vertices[1]->pt),
+					    *(vertices[2]->pt),
+					    *(p->pt)          ) > 0.0    );
 }
 
 /** Connects this face to ADJ, making it adjacent.
  *  Does this by finding a matching edge in ADJ. */
-void Face::connect(Face::Ptr adj, Vector3dPtr a, Vector3dPtr b) {
+void Face::connect(Face::Ptr adj, Vertex::Ptr a, Vertex::Ptr b) {
 	HalfEdge::Ptr in  = getMatchingEdge(a, b);
 	HalfEdge::Ptr out = adj->getMatchingEdge(a, b);
 	in->twin  = out;
@@ -45,7 +48,7 @@ void Face::connect(HalfEdge::Ptr e) {
 
 /** Returns one of the boundary edges if the end-points match.
  *  Otherwise returns null.*/
-HalfEdge::Ptr Face::getMatchingEdge(Vector3dPtr a, Vector3dPtr b) {
+HalfEdge::Ptr Face::getMatchingEdge(Vertex::Ptr a, Vertex::Ptr b) {
 	for (int i=0; i<3; i++)
 		if (edges[i]->matches(a, b))
 			return edges[i];
