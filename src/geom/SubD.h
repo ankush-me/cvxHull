@@ -6,9 +6,11 @@
 
 #include <vector>
 #include "Data.h"
+#include "Vertex.h"
+#include "Face.h"
 
 class SubDivision {
-
+public:
 	std::vector<Vertex::Ptr> vertices;
 	std::vector<Face::Ptr> faces;
 

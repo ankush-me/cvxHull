@@ -6,3 +6,5 @@ add_library(geom ConflictGraph.cpp
                  HalfEdge.cpp
                  Vertex.cpp
                  SubD.cpp)
+                 
+target_link_libraries(geom utils)

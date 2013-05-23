@@ -1,6 +1,9 @@
 #include "ConflictGraph.h"
 #include <iostream>
 
+#include "Face.h"
+#include "Vertex.h"
+
 using namespace std;
 
 /** Delete this GraphArc from both doubly-linked lists. */

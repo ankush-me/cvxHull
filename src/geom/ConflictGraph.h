@@ -1,11 +1,13 @@
 #ifndef __CONFLICT_GRAPH_H__
 #define __CONFLICT_GRAPH_H__
 
-#include "Face.h"
-#include "Data.h"
-#include "Vertex.h"
-#include <boost/shared_ptr.hpp>
 
+#include "Data.h"
+#include <boost/shared_ptr.hpp>
+#include <vector>
+
+class Face;
+class Vertex;
 
 /** The Conflict Graph is completely constructed of doubly-linked lists
  *  of GraphArcs stored in the facets and vertices of the convex hull.
@@ -17,8 +19,8 @@ public:
 	typedef boost::shared_ptr<ConflictEdge> Ptr;
 
 	// Pointers to conflict faces and vertices.
-	Face::Ptr   face;
-	Vertex::Ptr vertex;
+	boost::shared_ptr<Face>  face;
+	boost::shared_ptr<Vertex> vertex;
 
 	// Doubly-linked list for a vertex
 	ConflictEdge::Ptr nextv;
@@ -30,12 +32,11 @@ public:
 
 	/** Create a new arc for the conflict graph.  This arc won't be
 	 *  connected until add() is called. */
-	ConflictEdge(Face::Ptr f, Vertex::Ptr v) : face(f), vertex(v) {}
+	ConflictEdge(boost::shared_ptr<Face> f, boost::shared_ptr<Vertex>  v) : face(f), vertex(v) {}
 
 	/** Delete this GraphArc from both doubly-linked lists. */
 	void deleteEdge();
 };
-
 
 
 /**
@@ -52,17 +53,17 @@ public:
 	ConflictEdge::Ptr head;
 	bool face;
 
-	ConflictList(bool _face) : head(), face(_face) {}
+	ConflictList(bool _face);
 
 	void add(ConflictEdge::Ptr e);
 	bool isEmpty();
 	void clear();
 
 	/** Fill a list of vertices by walking the doubly-linked facet list.*/
-	void getVertices(std::vector<Vertex::Ptr> &list);
+	void getVertices(std::vector<boost::shared_ptr<Vertex> > &list);
 
 	/** Fill a list of facets by walking the doubly-linked facet list. */
-	void getFaces(std::vector<Face::Ptr> &list);
+	void getFaces(std::vector<boost::shared_ptr<Face> > &list);
 
 	void printVertexList();
 };

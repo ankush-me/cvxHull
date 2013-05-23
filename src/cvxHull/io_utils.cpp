@@ -12,7 +12,7 @@
 #include <Eigen/Dense>
 #include <boost/lexical_cast.hpp>
 #include <boost/unordered_set.hpp>
-#include "Data.h"
+#include "geom/Data.h"
 
 using namespace Eigen;
 using namespace std;

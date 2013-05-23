@@ -10,6 +10,7 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <vector>
+#include <Eigen/AlignedVector>
 
 
 /** ConvexHull is a 3D polytope which implements the randomized
@@ -17,6 +18,9 @@
  *  cloud.*/
 class ConvexHull : public SubDivision {
 public:
+
+	typedef boost::shared_ptr<ConvexHull> Ptr;
+
 	/** Current vertex to add to the hull */
 	int  current;
 
@@ -40,7 +44,7 @@ public:
 	ConvexHull(vector3d &pts, std::string file_prefix);
 
 	/** Add the next vertex to the convex hull. */
-	void insertNext();
+	bool insertNext();
 
 	/** To begin the convex hull algorithm, we create a tetrahedron from
 	 *  the first four vertices in the point cloud. */

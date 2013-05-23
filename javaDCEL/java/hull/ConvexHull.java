@@ -290,7 +290,6 @@ public class ConvexHull extends Polytope {
  * conflict arc for all vertices that can now see the new facet.
  */
    public void addConflicts(Facet f, Facet old1, Facet old2) {
-
       List l1 = new java.util.ArrayList();
       List l2 = new java.util.ArrayList();
       List l = new java.util.ArrayList();
@@ -301,31 +300,15 @@ public class ConvexHull extends Polytope {
       Vertex v1, v2;
       int i1 = 0, i2 = 0;
 
-      while (i1 < l1.size() || i2 < l2.size()) {
+      
+      while (i1 < l1.size()) {
+    	  v1 = (Vertex)l1.get(i1++);
+    	  l.add(v1);
+      }
 
-         if (i1 < l1.size() && i2 < l2.size()) {
-            v1 = (Vertex)l1.get(i1);
-            v2 = (Vertex)l2.get(i2);
-            if (v1.getIndex() == v2.getIndex()) {
-               l.add(v1);
-               i1++;
-               i2++;
-            }
-            else if (v1.getIndex() > v2.getIndex()) {
-               l.add(v1);
-               i1++;
-            }
-            else {
-               l.add(v2);
-               i2++;
-            }
-         }
-         else if (i1 < l1.size()) {
-            l.add(l1.get(i1++));
-         }
-         else {
-            l.add(l2.get(i2++));
-         }
+      while (i2 < l2.size()) {
+    	  v1 = (Vertex)l2.get(i2++);
+    	  l.add(v1);
       }
 
       Vertex v;

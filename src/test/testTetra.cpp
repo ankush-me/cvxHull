@@ -33,6 +33,7 @@ vector3f toFloat(vector3d & pts) {
 	return opts;
 }
 
+
 int main (int argc, char* argv[]) {
 	CustomScene s;
 	Eigen::Affine3f tf = Eigen::Affine3f::Identity();
@@ -40,29 +41,31 @@ int main (int argc, char* argv[]) {
 
 	vector3d cube_pts;
 	MatrixXd::Random(1,3);
-	cout << MatrixXd::Random(3,1)<<endl;
+	int N=100;
+	for (int i=0; i < N; i++) {
+		cube_pts.push_back(MatrixXd::Random(3,1));
+		cout << cube_pts[i].transpose()<<endl;
+	}
 
-	cube_pts.push_back(Vector3d(1.434,1,1)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(0,0.2,1)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(1.43,0,1.32)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(0,0,0)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(0,1.43,0)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(1,1,0.454)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(1,2,0.323)+MatrixXd::Random(3,1));
-	cube_pts.push_back(Vector3d(0,3,1)+MatrixXd::Random(3,1));
 
 	ConvexHull chull(cube_pts,"cube");
-	chull.insertNext();
+	int i=0;
+	while(i < N-4) {chull.insertNext(); i++;}
 
 	// plot the triangular faces.
 	PlotTriangles::Ptr plotTriangles(new PlotTriangles);
 	plotTriangles->m_defaultColor = osg::Vec4d(1,0,0,1);
 	s.env->add(plotTriangles);
+
+
+	cout << "num faces : "<<chull.faces.size()<<endl;
+
 	for(int i=0; i < chull.faces.size(); i++) {
 		vector3d tris(3);
 		tris[0] = *(chull.faces[i]->vertices[0]->pt);
 		tris[1] = *(chull.faces[i]->vertices[1]->pt);
 		tris[2] = *(chull.faces[i]->vertices[2]->pt);
+		cout << "adding"<<endl;
 		plotTriangles->addTriangle(toFloat(tris));
 	}
 

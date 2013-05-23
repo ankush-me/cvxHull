@@ -1,4 +1,7 @@
 #include "HalfEdge.h"
+#include <iostream>
+
+using namespace std;
 
 HalfEdge::HalfEdge(Vertex::Ptr _org, Vertex::Ptr _dst, Face::Ptr _face) : org(_org), dst(_dst), face(_face) {}
 
@@ -14,6 +17,7 @@ bool HalfEdge::matches(Vertex::Ptr p, Vertex::Ptr  q) {
 
 void HalfEdge::findHorizon(std::vector<HalfEdge::Ptr> &horizon) {
 	if (onHorizon()) {
+		cout << "on horizon"<<endl;
 		if (horizon.size() > 0 && this == horizon[0].get()) {
 			return;
 		} else {
@@ -21,8 +25,10 @@ void HalfEdge::findHorizon(std::vector<HalfEdge::Ptr> &horizon) {
 			next->findHorizon(horizon);
 		}
 	} else {
-		if (!twin)
+		cout << "NOT on horizon"<<endl;
+		if (twin) {
 			twin->next->findHorizon(horizon);
+		}
 	}
 }
 

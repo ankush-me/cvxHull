@@ -9,5 +9,6 @@ link_directories(
 )
 
 add_subdirectory(utils)
-add_subdirectory(qedge)
+add_subdirectory(geom)
+add_subdirectory(cvxHull)
 add_subdirectory(test)

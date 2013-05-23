@@ -1,9 +1,34 @@
 #include "Face.h"
 #include "HalfEdge.h"
 #include "utils/sorting.h"
+#include "utils/geom_predicates.h"
 
 using namespace std;
 using namespace boost;
+
+
+Face::Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) : toDelete(false), cList(new ConflictList(true)) {
+	vertices.push_back(pa);
+	vertices.push_back(pb);
+	vertices.push_back(pc);
+
+	//initEdges(pa, pb, pc);
+}
+
+/** Constructs the face such that point T is behind the face.*/
+Face::Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc, Vertex::Ptr t) : toDelete(false), cList(new ConflictList(true))  {
+
+	vertices.push_back(pa);
+	vertices.push_back(pb);
+	vertices.push_back(pc);
+
+	if (!isBehind(t))
+		swap(vertices[1], vertices[2]);
+
+	//initEdges(pa, pb, pc);
+}
+
+
 
 /** Initalizes the edges of the triangular face. */
 void Face::initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) {
@@ -18,8 +43,8 @@ void Face::initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) {
 
 	// connect the edges up.
 	for (int i=0; i <3; i++) {
-		edges[i]->next(edges[mod(i+1,3)]);
-		edges[i]->prev(edges[mod(i-1,3)]);
+		edges[i]->next = edges[mod(i+1,3)];
+		edges[i]->prev = edges[mod(i-1,3)];
 	}
 }
 

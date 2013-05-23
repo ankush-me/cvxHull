@@ -1,11 +1,16 @@
 #include "ConvexHull.h"
+#include "io_utils.h"
+
+#include <iostream>
+
+using namespace std;
 
 /** ConvexHull is a 3D polytope which implements the randomized
  *  incremental algorithm for constructing a convex hull from a point
  *  cloud.*/
 
 /** Constructor. */
-ConvexHull::ConvexHull(std::string fname, std::string outname) : initFromFile(true) {
+ConvexHull::ConvexHull(std::string fname, std::string outname) :current(0), initFromFile(true) {
 	if (fname.substr(fname.length()-5,5)!= ".node") {
 		std::cout << "Expecting input file with .node extension. Instead, found "
 				<<fname.substr(fname.length()-5,5)<<". Exiting.\n";
@@ -21,26 +26,29 @@ ConvexHull::ConvexHull(std::string fname, std::string outname) : initFromFile(tr
 
 
 /** Compute the convex hull of PTS. FILE_PREFIX :*/
-ConvexHull::ConvexHull(vector3d &pts, std::string file_prefix) :
-																	initFromFile(false), outPrefix(file_prefix) {
+ConvexHull::ConvexHull(vector3d &pts, std::string file_prefix) : current(0), initFromFile(false), outPrefix(file_prefix) {
 	for(int i =0; i< pts.size(); i++) {
 		Vertex::Ptr v(new Vertex(i));
 		v->pt.reset(new Eigen::Vector3d(pts[i]));
 		vertices.push_back(v);
 	}
-	random_shuffle(vertices.begin(), vertices.end());
+	//random_shuffle(vertices.begin(), vertices.end());
 }
 
 
 /** Add the next vertex to the convex hull. */
-void ConvexHull::insertNext() {
+bool ConvexHull::insertNext() {
+	if (current >= vertices.size()) false;
 	if (current == 0) {
 		initTetraAndConflicts();
+		return true;
 	} else if (newFaces.size() == 0) {
 		stepA();
 		stepB();
+		return true;
 	} else {
 		stepC();
+		return true;
 	}
 }
 
@@ -48,6 +56,7 @@ void ConvexHull::insertNext() {
 /** To begin the convex hull algorithm, we create a tetrahedron from
  *  the first four vertices in the point cloud. */
 void ConvexHull::initTetraAndConflicts() {
+
 	assert (("Convex Hull requires at least, 4 points.", vertices.size()>=4));
 	Vertex::Ptr v1 = vertices[0];
 	Vertex::Ptr v2 = vertices[1];
@@ -55,9 +64,17 @@ void ConvexHull::initTetraAndConflicts() {
 	Vertex::Ptr v4 = vertices[3];
 
 	Face::Ptr f1(new Face(v1, v2, v3, v4));
+	f1->initEdges(v1, v2, v3);
+
 	Face::Ptr f2(new Face(v1, v3, v4, v2));
+	f2->initEdges(v1, v3, v4);
+
 	Face::Ptr f3(new Face(v1, v2, v4, v3));
+	f3->initEdges(v1, v2, v4);
+
 	Face::Ptr f4(new Face(v2, v3, v4, v1));
+	f4->initEdges(v2, v3, v4);
+
 
 	faces.clear();
 	faces.push_back(f1);
@@ -130,6 +147,7 @@ void ConvexHull::stepA() {
 /** StepB continues the incremental step by connecting vertex v to
  *  each edge of the horizon. */
 void ConvexHull::stepB() {
+	cout << "STEP B :"<<endl;
 
 	if (current >= vertices.size()) return;
 	Vertex::Ptr v = vertices[current];
@@ -142,7 +160,11 @@ void ConvexHull::stepB() {
 
 		/** Create a new facet. */
 		Face::Ptr f(new Face(v, e->dst, e->org));
+		f->initEdges(v, e->dst, e->org);
+
+
 		faces.push_back(f);
+		cout << "added a FACE"<<endl;
 		newFaces.push_back(f);
 		//f.setFilled(false);
 
@@ -190,7 +212,7 @@ void ConvexHull::stepC() {
 void ConvexHull::addConflict(Face::Ptr f, Vertex::Ptr v) {
 	ConflictEdge::Ptr e(new ConflictEdge(f, v));
 	f->cList->add(e);
-	v->cList(e);
+	v->cList->add(e);
 }
 
 
@@ -213,11 +235,11 @@ void ConvexHull::addConflicts(Face::Ptr f, Face::Ptr old1, Face::Ptr old2) {
 		l.push_back(l1[i]);
 
 	// de-duplicate
-	std::sort(l.begin(), l.end());
-	std::vector<Vertex::Ptr>::iterator it = std::unique(l.begin(), l.end());
-	l.resize( std::distance(l.begin(),it) );
+//	std::sort(l.begin(), l.end());
+//	std::vector<Vertex::Ptr>::iterator it = std::unique(l.begin(), l.end());
+//	l.resize( std::distance(l.begin(),it) );
 
-	for (int i=l.size() - 1; i >= 0; i--) {
+	for (int i=0; i < l.size(); i++) {
 		Vertex::Ptr v = l[i];
 		if (!f->isBehind(v)) addConflict(f, v);
 	}

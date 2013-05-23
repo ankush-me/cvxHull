@@ -9,6 +9,8 @@
 #include "Data.h"
 #include "ConflictGraph.h"
 
+#include "Vertex.h"
+
 class HalfEdge;
 
 /** Represent a face of the sub-division.
@@ -24,31 +26,14 @@ public:
 	bool toDelete;
 	ConflictList::Ptr cList;
 
-
-
 	/** Initialize the edges of the face, given the three vertices. */
 	void initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);
 
 
-	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) : toDelete(false), cList(new ConflictList(true)) {
-		vertices.push_back(pa);
-		vertices.push_back(pb);
-		vertices.push_back(pc);
-
-		initEdges(pa, pb, pc);
-	}
+	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);
 
 	/** Constructs the face such that point T is behind the face.*/
-	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc, Vertex::Ptr t) : toDelete(false) {
-		vertices.push_back(pa);
-		vertices.push_back(pb);
-		vertices.push_back(pc);
-
-		if (!isBehind(t))
-			swap(vertices[1], vertices[2]);
-
-		initEdges(pa, pb, pc);
-	}
+	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc, Vertex::Ptr t);
 
 	/** Returns TRUE iff, PT is behind this face.*/
 	bool isBehind(Vertex::Ptr pt);
