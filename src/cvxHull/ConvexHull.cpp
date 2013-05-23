@@ -52,6 +52,12 @@ bool ConvexHull::insertNext() {
 	}
 }
 
+void ConvexHull::computeHull() {
+	int N = vertices.size(); int i=0;
+	while(i < 2*N) {
+		insertNext(); i++;
+	}
+}
 
 /** To begin the convex hull algorithm, we create a tetrahedron from
  *  the first four vertices in the point cloud. */
@@ -147,7 +153,6 @@ void ConvexHull::stepA() {
 /** StepB continues the incremental step by connecting vertex v to
  *  each edge of the horizon. */
 void ConvexHull::stepB() {
-	cout << "STEP B :"<<endl;
 
 	if (current >= vertices.size()) return;
 	Vertex::Ptr v = vertices[current];
@@ -163,7 +168,6 @@ void ConvexHull::stepB() {
 		f->initEdges();
 		faces.push_back(f);
 		newFaces.push_back(f);
-		//f.setFilled(false);
 
 		/** Connect it to the hull. */
 		f->connect(e);
@@ -194,12 +198,6 @@ void ConvexHull::stepC() {
 		removeConflicts(f);
 		removeFace(f);
 	}
-
-	/** Fill in all newly created facets. */
-	for (int i=0; i< newFaces.size(); i++) {
-		//newFaces[i]->setFilled(true);
-	}
-
 	newFaces.clear();
 	current++;
 }
@@ -231,10 +229,10 @@ void ConvexHull::addConflicts(Face::Ptr f, Face::Ptr old1, Face::Ptr old2) {
 	for(int i=0; i<l1.size(); i++)
 		l.push_back(l1[i]);
 
-	// de-duplicate
-//	std::sort(l.begin(), l.end());
-//	std::vector<Vertex::Ptr>::iterator it = std::unique(l.begin(), l.end());
-//	l.resize( std::distance(l.begin(),it) );
+	//de-duplicate
+	std::sort(l.begin(), l.end());
+	std::vector<Vertex::Ptr>::iterator it = std::unique(l.begin(), l.end());
+	l.resize( std::distance(l.begin(),it) );
 
 	for (int i=0; i < l.size(); i++) {
 		Vertex::Ptr v = l[i];

@@ -17,18 +17,12 @@ bool HalfEdge::matches(Vertex::Ptr p, Vertex::Ptr  q) {
 
 void HalfEdge::findHorizon(std::vector<HalfEdge::Ptr> &horizon) {
 	if (onHorizon()) {
-		cout << "on horizon"<<endl;
 		if (horizon.size() > 0 && this == horizon[0].get()) {
 			return;
 		} else {
 			horizon.push_back(shared_from_this());
 			next->findHorizon(horizon);
 		}
-	} else {
-		cout << "NOT on horizon"<<endl;
-		if (twin) {
-			twin->next->findHorizon(horizon);
-		}
-	}
+	} else if (twin)  twin->next->findHorizon(horizon);
 }
 

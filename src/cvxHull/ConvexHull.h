@@ -45,6 +45,7 @@ public:
 
 	/** Add the next vertex to the convex hull. */
 	bool insertNext();
+	void computeHull();
 
 	/** To begin the convex hull algorithm, we create a tetrahedron from
 	 *  the first four vertices in the point cloud. */

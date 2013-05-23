@@ -22,6 +22,7 @@ using namespace std;
 void readNodeFile(const std::string &fname, ConvexHull* chull) {
 
 	bool readFirstLine        = false;
+	bool lifting              = false;
 	unsigned int N           = -1;
 	unsigned int dim         = -1;
 	unsigned int i           =  0;
@@ -52,18 +53,30 @@ void readNodeFile(const std::string &fname, ConvexHull* chull) {
 						"<# of boundary markers (0 or 1)>", splitline.size()== 4));
 				N   = atoi(splitline[0].c_str());
 				dim = atoi(splitline[1].c_str());
-				assert(("Dimension of vertices must be 3", dim==3));
+
+				if (dim==2) {lifting = true;}
+				assert(("Dimension of vertices must be either 2 or 3", (dim==3||dim==2)));
 				chull->vertices.clear();
 				i = 0;
 				readFirstLine = true;
 			} else { // read the vertices
-				assert(("Insufficient data while reading .node file. "
-						"Vertices should be specified in the following format : "
-						"<vertex #> <x> <y> <z> [attributes] [boundary marker]", splitline.size() >= 4));
+				if (lifting) {
+					assert(("Insufficient data while reading .node file. "
+							"Vertices should be specified in the following format : "
+							"<vertex #> <x> <y> [attributes] [boundary marker]", splitline.size() >= 3));
+				} else {
+					assert(("Insufficient data while reading .node file. "
+							"Vertices should be specified in the following format : "
+							"<vertex #> <x> <y> <z> [attributes] [boundary marker]", splitline.size() >= 4));
+				}
+
 				int index =  boost::lexical_cast<int>(splitline[0].c_str());
 				double x  = boost::lexical_cast<double>(splitline[1].c_str());
 				double y  = boost::lexical_cast<double>(splitline[2].c_str());
-				double z  = boost::lexical_cast<double>(splitline[3].c_str());
+
+				double z;
+				if (lifting) z = x*x +y*y;
+				else z  = boost::lexical_cast<double>(splitline[3].c_str());
 
 				if (i < N) {
 					Vertex::Ptr v(new Vertex(index));
