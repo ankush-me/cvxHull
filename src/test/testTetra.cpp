@@ -1,5 +1,5 @@
 #include <iostream>
-#include "qedge/ConvexHull.h"
+#include "cvxHull/ConvexHull.h"
 
 #include "osgviewer/simplescene.h"
 #include "osgviewer/plotting.h"
@@ -10,7 +10,6 @@ using namespace std;
 using namespace Eigen;
 
 class CustomScene : public Scene{};
-
 
 vector3f to3d(const vector2f &pts) {
 	vector3f pts3d(pts.size());
@@ -34,9 +33,6 @@ vector3f toFloat(vector3d & pts) {
 	return opts;
 }
 
-
-
-
 int main (int argc, char* argv[]) {
 	CustomScene s;
 	Eigen::Affine3f tf = Eigen::Affine3f::Identity();
@@ -56,19 +52,18 @@ int main (int argc, char* argv[]) {
 	cube_pts.push_back(Vector3d(0,3,1)+MatrixXd::Random(3,1));
 
 	ConvexHull chull(cube_pts,"cube");
-	chull.computeHull();
-
-	vector<vector3d> tris;
-	vector<QuadEdge::Ptr> qedges;
-	chull.getTriangles(tris, qedges);
-
+	chull.insertNext();
 
 	// plot the triangular faces.
 	PlotTriangles::Ptr plotTriangles(new PlotTriangles);
 	plotTriangles->m_defaultColor = osg::Vec4d(1,0,0,1);
 	s.env->add(plotTriangles);
-	for(int i=0; i < tris.size(); i++) {
-		plotTriangles->addTriangle(toFloat(tris[i]));
+	for(int i=0; i < chull.faces.size(); i++) {
+		vector3d tris(3);
+		tris[0] = *(chull.faces[i]->vertices[0]->pt);
+		tris[1] = *(chull.faces[i]->vertices[1]->pt);
+		tris[2] = *(chull.faces[i]->vertices[2]->pt);
+		plotTriangles->addTriangle(toFloat(tris));
 	}
 
 	//plot the edges.

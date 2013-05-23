@@ -19,8 +19,7 @@ using namespace std;
 
 /** Reads a .node file specifying 3-dimensional points
  *  into a vector of Eigen::Vector3d points.*/
-void readNodeFile(const std::string &fname,
-		std::vector<ConflictVertex3d> &pts, std::vector<Vector3dPtr> &point_ptrs) {
+void readNodeFile(const std::string &fname, ConvexHull* chull) {
 
 	bool readFirstLine        = false;
 	unsigned int N           = -1;
@@ -54,8 +53,7 @@ void readNodeFile(const std::string &fname,
 				N   = atoi(splitline[0].c_str());
 				dim = atoi(splitline[1].c_str());
 				assert(("Dimension of vertices must be 3", dim==3));
-				pts.clear(); point_ptrs.clear();
-				pts.resize(N); point_ptrs.resize(N+1);
+				chull->vertices.clear();
 				i = 0;
 				readFirstLine = true;
 			} else { // read the vertices
@@ -68,9 +66,9 @@ void readNodeFile(const std::string &fname,
 				double z  = boost::lexical_cast<double>(splitline[3].c_str());
 
 				if (i < N) {
-					ConflictVertex3d cpoint(index);
-					pts[i]            = cpoint;
-					point_ptrs[index] = Vector3dPtr(new Vector3d(x,y,z));
+					Vertex::Ptr v(new Vertex(index));
+					v->pt.reset(new Eigen::Vector3d(x,y,z));
+					chull->vertices.push_back(v);
 					i += 1;
 				} else {
 					cout << ">>> Expecting "<< N << " points. Found more while reading "
@@ -81,117 +79,117 @@ void readNodeFile(const std::string &fname,
 	}
 }
 
-
-void reportTriangle(Edge::Ptr e, ConvexHull* subD,
-		int check_num, std::vector<std::vector<int> >  &tris) {
-
-	if (e->visit_num == check_num) {// not marked
-		if (e->Lnext()->Lnext()->Lnext() == e) {// check it forms a triangle
-
-			vector<int> tri(3);
-			tri[0] = e->org();
-			tri[1] = e->Rnext()->org();
-			tri[2] = e->Rnext()->Rnext()->org();
-
-			e->visit_num += 1;
-			e->Rnext()->visit_num += 1;
-			e->Rnext()->Rnext()->visit_num += 1;
-
-			// add the triangle.
-			tris.push_back(tri);
-		}
-	}
-}
-
-
-void getAllQuadEdges(char check_num, QuadEdge::Ptr qedge,
-		vector<QuadEdge::Ptr> &qedges, vector<QuadEdge::Ptr> &toCall) {
-
-	if (qedge->visit_num == check_num) {
-		qedge->visit_num += 1;
-
-		qedges.push_back(qedge);
-		Edge::Ptr e = qedge->edges[0];
-		Edge::Ptr f = e->Onext();
-
-		while (f!=e) {
-			toCall.push_back(f->qEdge());
-			f = f->Onext();
-		}
-
-		f = e->Dnext();
-		while (f!=e) {
-			toCall.push_back(f->qEdge());
-			f = f->Dnext();
-		}
-	}
-}
-
-
-/** Writes an .ele file, corresponding to the .node file
- *  which was used to construct the triangulation.
- *  The name of the output file is fname.ele. */
-void writeSubdivision(const std::string &fname, ConvexHull* subD) {
-	vector<vector<int> > tris;
-	vector<QuadEdge::Ptr> qedges;
-	vector<QuadEdge::Ptr> toCall;
-
-
-	toCall.push_back(subD->randEdge);
-	while (toCall.size() != 0) {
-		QuadEdge::Ptr q = toCall.back();
-		toCall.pop_back();
-		getAllQuadEdges(0, q, qedges, toCall);
-	}
-	cout << "Number of quadedges : "<<qedges.size()<<endl;
-
-	for(int i=0; i < qedges.size(); i+=1) {
-		QuadEdge::Ptr q = qedges[i];
-		reportTriangle(q->edges[0], subD, 0, tris);
-		reportTriangle(q->edges[0]->Sym(), subD, 0, tris);
-	}
-	cout << "Number of triangular faces : "<<tris.size()<<endl;
-
-	ofstream outfile;
-	outfile.open(fname.c_str(), ios::out);
-	outfile << tris.size()<<"\t"<<3<<"\t"<<0<<endl;
-	for (int t=0; t<tris.size(); t+=1)
-		outfile <<t+1<<"\t"<<tris[t][0]<<"\t"<<tris[t][1]<<"\t"<<tris[t][2]<<endl;
-	outfile.close();
-	cout << "Wrote "<<fname<<endl;
-}
-
-
-/** Returns a vector of triangular faces of the convex hull subdivision.
- *  Also returns pointers to all the quad-edges in the subdivision. */
-void getAllTriangles(vector<vector3d>& otris, vector<QuadEdge::Ptr> &qedges, ConvexHull* subD) {
-	vector<vector<int> > tris;
-	vector<QuadEdge::Ptr> toCall;
-
-	otris.clear();
-	qedges.clear();
-
-	toCall.push_back(subD->randEdge);
-	while (toCall.size() != 0) {
-		QuadEdge::Ptr q = toCall.back();
-		toCall.pop_back();
-		getAllQuadEdges(0, q, qedges, toCall);
-	}
-	cout << "Number of quadedges : "<<qedges.size()<<endl;
-
-	for(int i=0; i < qedges.size(); i+=1) {
-		QuadEdge::Ptr q = qedges[i];
-		reportTriangle(q->edges[0], subD, 0, tris);
-		reportTriangle(q->edges[0]->Sym(), subD, 0, tris);
-	}
-	cout << "Number of triangular faces : "<<tris.size()<<endl;
-
-	for (int t=0; t<tris.size(); t+=1) {
-		vector3d tpts(3);
-		tpts[0] = *(subD->point_ptrs[tris[t][0]]);
-		tpts[1] = *(subD->point_ptrs[tris[t][1]]);
-		tpts[2] = *(subD->point_ptrs[tris[t][2]]);
-
-		otris.push_back(tpts);
-	}
-}
+//
+//void reportTriangle(Edge::Ptr e, ConvexHull* subD,
+//		int check_num, std::vector<std::vector<int> >  &tris) {
+//
+//	if (e->visit_num == check_num) {// not marked
+//		if (e->Lnext()->Lnext()->Lnext() == e) {// check it forms a triangle
+//
+//			vector<int> tri(3);
+//			tri[0] = e->org();
+//			tri[1] = e->Rnext()->org();
+//			tri[2] = e->Rnext()->Rnext()->org();
+//
+//			e->visit_num += 1;
+//			e->Rnext()->visit_num += 1;
+//			e->Rnext()->Rnext()->visit_num += 1;
+//
+//			// add the triangle.
+//			tris.push_back(tri);
+//		}
+//	}
+//}
+//
+//
+//void getAllQuadEdges(char check_num, QuadEdge::Ptr qedge,
+//		vector<QuadEdge::Ptr> &qedges, vector<QuadEdge::Ptr> &toCall) {
+//
+//	if (qedge->visit_num == check_num) {
+//		qedge->visit_num += 1;
+//
+//		qedges.push_back(qedge);
+//		Edge::Ptr e = qedge->edges[0];
+//		Edge::Ptr f = e->Onext();
+//
+//		while (f!=e) {
+//			toCall.push_back(f->qEdge());
+//			f = f->Onext();
+//		}
+//
+//		f = e->Dnext();
+//		while (f!=e) {
+//			toCall.push_back(f->qEdge());
+//			f = f->Dnext();
+//		}
+//	}
+//}
+//
+//
+///** Writes an .ele file, corresponding to the .node file
+// *  which was used to construct the triangulation.
+// *  The name of the output file is fname.ele. */
+//void writeSubdivision(const std::string &fname, ConvexHull* subD) {
+//	vector<vector<int> > tris;
+//	vector<QuadEdge::Ptr> qedges;
+//	vector<QuadEdge::Ptr> toCall;
+//
+//
+//	toCall.push_back(subD->randEdge);
+//	while (toCall.size() != 0) {
+//		QuadEdge::Ptr q = toCall.back();
+//		toCall.pop_back();
+//		getAllQuadEdges(0, q, qedges, toCall);
+//	}
+//	cout << "Number of quadedges : "<<qedges.size()<<endl;
+//
+//	for(int i=0; i < qedges.size(); i+=1) {
+//		QuadEdge::Ptr q = qedges[i];
+//		reportTriangle(q->edges[0], subD, 0, tris);
+//		reportTriangle(q->edges[0]->Sym(), subD, 0, tris);
+//	}
+//	cout << "Number of triangular faces : "<<tris.size()<<endl;
+//
+//	ofstream outfile;
+//	outfile.open(fname.c_str(), ios::out);
+//	outfile << tris.size()<<"\t"<<3<<"\t"<<0<<endl;
+//	for (int t=0; t<tris.size(); t+=1)
+//		outfile <<t+1<<"\t"<<tris[t][0]<<"\t"<<tris[t][1]<<"\t"<<tris[t][2]<<endl;
+//	outfile.close();
+//	cout << "Wrote "<<fname<<endl;
+//}
+//
+//
+///** Returns a vector of triangular faces of the convex hull subdivision.
+// *  Also returns pointers to all the quad-edges in the subdivision. */
+//void getAllTriangles(vector<vector3d>& otris, vector<QuadEdge::Ptr> &qedges, ConvexHull* subD) {
+//	vector<vector<int> > tris;
+//	vector<QuadEdge::Ptr> toCall;
+//
+//	otris.clear();
+//	qedges.clear();
+//
+//	toCall.push_back(subD->randEdge);
+//	while (toCall.size() != 0) {
+//		QuadEdge::Ptr q = toCall.back();
+//		toCall.pop_back();
+//		getAllQuadEdges(0, q, qedges, toCall);
+//	}
+//	cout << "Number of quadedges : "<<qedges.size()<<endl;
+//
+//	for(int i=0; i < qedges.size(); i+=1) {
+//		QuadEdge::Ptr q = qedges[i];
+//		reportTriangle(q->edges[0], subD, 0, tris);
+//		reportTriangle(q->edges[0]->Sym(), subD, 0, tris);
+//	}
+//	cout << "Number of triangular faces : "<<tris.size()<<endl;
+//
+//	for (int t=0; t<tris.size(); t+=1) {
+//		vector3d tpts(3);
+//		tpts[0] = *(subD->point_ptrs[tris[t][0]]);
+//		tpts[1] = *(subD->point_ptrs[tris[t][1]]);
+//		tpts[2] = *(subD->point_ptrs[tris[t][2]]);
+//
+//		otris.push_back(tpts);
+//	}
+//}

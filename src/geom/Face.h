@@ -30,7 +30,7 @@ public:
 	void initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);
 
 
-	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) : toDelete(false) {
+	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) : toDelete(false), cList(new ConflictList(true)) {
 		vertices.push_back(pa);
 		vertices.push_back(pb);
 		vertices.push_back(pc);
