@@ -64,16 +64,16 @@ void ConvexHull::initTetraAndConflicts() {
 	Vertex::Ptr v4 = vertices[3];
 
 	Face::Ptr f1(new Face(v1, v2, v3, v4));
-	f1->initEdges(v1, v2, v3);
+	f1->initEdges();
 
 	Face::Ptr f2(new Face(v1, v3, v4, v2));
-	f2->initEdges(v1, v3, v4);
+	f2->initEdges();
 
 	Face::Ptr f3(new Face(v1, v2, v4, v3));
-	f3->initEdges(v1, v2, v4);
+	f3->initEdges();
 
 	Face::Ptr f4(new Face(v2, v3, v4, v1));
-	f4->initEdges(v2, v3, v4);
+	f4->initEdges();
 
 
 	faces.clear();
@@ -160,11 +160,8 @@ void ConvexHull::stepB() {
 
 		/** Create a new facet. */
 		Face::Ptr f(new Face(v, e->dst, e->org));
-		f->initEdges(v, e->dst, e->org);
-
-
+		f->initEdges();
 		faces.push_back(f);
-		cout << "added a FACE"<<endl;
 		newFaces.push_back(f);
 		//f.setFilled(false);
 
@@ -172,7 +169,7 @@ void ConvexHull::stepB() {
 		f->connect(e);
 		if (last) f->connect(last, v, e->org);
 		last = f;
-		if (first) first = f;
+		if (!first) first = f;
 
 		/** Update conflict graph for the new facet*/
 		addConflicts(f, old, e->face);

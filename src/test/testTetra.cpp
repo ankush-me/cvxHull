@@ -47,10 +47,16 @@ int main (int argc, char* argv[]) {
 		cout << cube_pts[i].transpose()<<endl;
 	}
 
+	PlotPoints::Ptr plotPts(new PlotPoints);
+	plotPts->setPoints(toFloat(cube_pts));
+	s.env->add(plotPts);
+
 
 	ConvexHull chull(cube_pts,"cube");
-	int i=0;
-	while(i < N-4) {chull.insertNext(); i++;}
+	int i=0; int pc = chull.current;
+	while(i < N) {
+		chull.insertNext(); i++;
+	}
 
 	// plot the triangular faces.
 	PlotTriangles::Ptr plotTriangles(new PlotTriangles);

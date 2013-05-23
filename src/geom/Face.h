@@ -27,7 +27,7 @@ public:
 	ConflictList::Ptr cList;
 
 	/** Initialize the edges of the face, given the three vertices. */
-	void initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);
+	void initEdges();
 
 
 	Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc);

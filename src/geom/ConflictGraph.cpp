@@ -6,6 +6,8 @@
 
 using namespace std;
 
+ConflictEdge::ConflictEdge(boost::shared_ptr<Face> f, boost::shared_ptr<Vertex>  v) : face(f), vertex(v) {}
+
 /** Delete this GraphArc from both doubly-linked lists. */
 void ConflictEdge::deleteEdge() {
 	if (prevv) prevv->nextv = nextv;
@@ -15,16 +17,14 @@ void ConflictEdge::deleteEdge() {
 
 	ConflictList::Ptr lst;
 	if (!prevv) {
-		lst = vertex->cList;
-		lst->head = nextv;
+		vertex->cList->head = nextv;
 	}
 	if (!prevf) {
-		lst = face->cList;
-		lst->head = nextf;
+		face->cList->head = nextf;
 	}
 }
 
-ConflictList::ConflictList(bool _face) : head(), face(_face) {}
+ConflictList::ConflictList(bool _face) : face(_face) {}
 
 void ConflictList::add(ConflictEdge::Ptr e) {
 	if (face) {
@@ -38,7 +38,7 @@ void ConflictList::add(ConflictEdge::Ptr e) {
 	}
 }
 
-bool ConflictList::isEmpty() {return (!head);}
+bool ConflictList::isEmpty() {return (bool) (!head);}
 
 void ConflictList::clear() {
 	while (head ) {	head->deleteEdge();}

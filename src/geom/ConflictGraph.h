@@ -32,7 +32,7 @@ public:
 
 	/** Create a new arc for the conflict graph.  This arc won't be
 	 *  connected until add() is called. */
-	ConflictEdge(boost::shared_ptr<Face> f, boost::shared_ptr<Vertex>  v) : face(f), vertex(v) {}
+	ConflictEdge(boost::shared_ptr<Face> f, boost::shared_ptr<Vertex>  v);
 
 	/** Delete this GraphArc from both doubly-linked lists. */
 	void deleteEdge();

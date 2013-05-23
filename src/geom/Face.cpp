@@ -31,7 +31,11 @@ Face::Face (Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc, Vertex::Ptr t) : toD
 
 
 /** Initalizes the edges of the triangular face. */
-void Face::initEdges(Vertex::Ptr pa, Vertex::Ptr pb, Vertex::Ptr pc) {
+void Face::initEdges() {
+
+	Vertex::Ptr pa = vertices[0];
+	Vertex::Ptr pb = vertices[1];
+	Vertex::Ptr pc = vertices[2];
 
 	HalfEdge::Ptr e0(new HalfEdge(pa,pb, shared_from_this()));
 	HalfEdge::Ptr e1(new HalfEdge(pb,pc, shared_from_this()));
@@ -53,7 +57,7 @@ bool Face::isBehind(Vertex::Ptr p) {
 	return (  orient3d(*(vertices[0]->pt),
 				   	    *(vertices[1]->pt),
 					    *(vertices[2]->pt),
-					    *(p->pt)          ) > 0.0    );
+					    *(p->pt)          ) >= 0.0    );
 }
 
 /** Connects this face to ADJ, making it adjacent.
