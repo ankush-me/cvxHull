@@ -6,6 +6,7 @@
 #include "osgviewer/util.h"
 
 #include <utils/misc.h>
+#include <time.h>
 
 using namespace std;
 using namespace Eigen;
@@ -45,7 +46,7 @@ void drawConvexHull(ConvexHull &chull, Scene &s) {
 	// plot the triangular faces.
 	PlotTriangles::Ptr plotTriangles(new PlotTriangles);
 	s.env->add(plotTriangles);
-	plotTriangles->m_defaultColor = osg::Vec4d(1,0,0,0.8);
+	plotTriangles->m_defaultColor = osg::Vec4d(1,0,0,0.7);
 	// draw faces
 	for(int i=0; i < chull.faces.size(); i++) {
 		vector3d tris(3);
@@ -77,15 +78,22 @@ int main (int argc, char* argv[]) {
 
 	vector3d cube_pts;
 	MatrixXd::Random(1,3);
-	int N=100;
+	int N=atoi(argv[1]);
 	for (int i=0; i < N; i++)
 		cube_pts.push_back(MatrixXd::Random(3,1));
+
+	clock_t tim;
+	int f;
+	tim = clock();
 
 	ConvexHull chull(cube_pts,"cube");
 	int i=0; int pc = chull.current;
 	while(i < 2*N) {
 		chull.insertNext(); i++;
 	}
+	tim = clock() - tim;
+	cout <<">>> "<<((double)tim)/CLOCKS_PER_SEC<< " seconds to compute the convex hull.\n";
+
 
 	drawConvexHull(chull, s);
 	// plot the points
